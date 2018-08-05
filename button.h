@@ -5,7 +5,6 @@
 #define BUTTON_H_
 
 void initializeButtonPin(void);
-_Bool readButtonWithStarteWare(void);
 _Bool readButtonWithBitTwiddling(void);
 
 void anotherUartInitialize(void);

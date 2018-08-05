@@ -51,6 +51,7 @@ _Bool Timer_isIsrFlagSet(void)
 {
 	return s_flagIsr;
 }
+
 void Timer_clearIsrFlag(void)
 {
 	s_flagIsr = false;
@@ -116,5 +117,3 @@ static void DMTimerSetUp(void)
 	/* Configure the DMTimer for Auto-reload and compare mode */
 	DMTimerModeConfigure(SOC_DMTIMER_2_REGS, DMTIMER_AUTORLD_NOCMP_ENABLE);
 }
-
-

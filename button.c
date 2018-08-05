@@ -38,7 +38,7 @@ void uartBaudRateSet(void);
 
 
 /*****************************************************************************
-**                INTERNAL FUNCTION DEFINITIONS
+**                EXTERNAL FUNCTION DEFINITIONS
 *****************************************************************************/
 #include "hw_cm_per.h"
 void GPIO2ModuleClkConfig(void)
@@ -106,15 +106,7 @@ void initializeButtonPin(void)
                    GPIO_DIR_INPUT);
 }
 
-/*
 
-** The main function. Application starts here.
-*/
-
-_Bool readButtonWithStarteWare(void)
-{
-	return GPIOPinRead(BUTTON_GPIO_BASE, BUTTON_PIN) == 0;
-}
 
 _Bool readButtonWithBitTwiddling(void)
 {
@@ -169,6 +161,3 @@ void uartBaudRateSet(void)
 	/* Programming the Divisor Latches. */
 	UARTDivisorLatchWrite(SOC_UART_0_REGS, divisorValue);
 }
-
-
-

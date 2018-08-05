@@ -1,7 +1,7 @@
 #include "soc_AM335x.h"
 #include "beaglebone.h"
 #include "consoleUtils.h"
-#include "hw_types.h" 
+#include "hw_types.h"
 #include <stdint.h>
 #include "gpio_v2.h"
 #include "dmtimer.h"
@@ -24,6 +24,8 @@
 #define MIN_SPEED 0
 #define BOUNCE 1
 #define BAR 2
+#define MIN_NUM_ASCII 48
+#define MAX_NUM_ASCII 57
 
 
 
@@ -47,6 +49,8 @@ static void listCommands(void);
 static int getSpeedDivider(void);
 static void printResetScources(void);
 static void listCommands(void);
+
+
 /******************************************************************************
  **              SERIAL PORT HANDLING
  ******************************************************************************/
@@ -60,22 +64,22 @@ static void changeSpeed(uint8_t newSpeed)
 }
 static void doBackgroundSerialWork(void)
 {
-	
+
 	if (s_rxByte != 0) {
 		if (s_rxByte == '?') {
 			listCommands();
 		}
-		else if(s_rxByte >= 48 && s_rxByte <= 57) {
+		else if(s_rxByte >= MIN_NUM_ASCII && s_rxByte <= MAX_NUM_ASCII) {
 			ConsoleUtilsPrintf("\nSetting LED speed to %c\n", s_rxByte);
-			changeSpeed(s_rxByte - 48);
+			changeSpeed(s_rxByte - MIN_NUM_ASCII);
 		}
 		else if(s_rxByte == 'a' || s_rxByte == 'A') {
 			ConsoleUtilsPrintf("\nChanging to bounce mode\n");
-			changeMode(2);
+			changeMode(BOUNCE);
 		}
 		else if(s_rxByte == 'b' || s_rxByte == 'B') {
 			ConsoleUtilsPrintf("\nChanging to bar mode\n");
-			changeMode(1);
+			changeMode(BAR);
 		}
 		else if(s_rxByte == 'x' || s_rxByte == 'X') {
 			ConsoleUtilsPrintf("\nNo longer hitting the watchdog.\n");
@@ -100,10 +104,10 @@ void doBackgroundWork(void)
 
 		s_doThings = false;
 		isButtonPressed = readButtonWithBitTwiddling();
-		
+
 		if (counter % getSpeedDivider() == 0){
 			flashLights();
-		}	
+		}
 		if (lastButtonState != isButtonPressed) {
 				if (isButtonPressed == false)
 				{
@@ -115,10 +119,14 @@ void doBackgroundWork(void)
 	}
 }
 
+/******************************************************************************
+ **              MAIN FUNCTION
+ ******************************************************************************/
+
 int main()
 {
 
-	
+
 	Serial_init(serialRxIsrCallback);
 	Timer_init();
 	Watchdog_init();
@@ -155,12 +163,17 @@ int main()
 
 }
 
+
+/******************************************************************************
+ **              STRING HANDLING
+ ******************************************************************************/
+
 static void printResetScources(void){
 
 	uint32_t resetSourceRegister = HWREG(PRM_DEV + PRM_RSTST_OFFSET);
 
 	ConsoleUtilsPrintf("Reset source (0x%x) = ", resetSourceRegister);
-	
+
 	if((resetSourceRegister & (1 << EXTERNAL_RESET)) != 0) {
 		ConsoleUtilsPrintf("External reset, \n");
 	}
@@ -184,6 +197,7 @@ static void listCommands(){
 	ConsoleUtilsPrintf(" 'x':  Stop hitting the watchdog.\n");
 	ConsoleUtilsPrintf(" 'BTN':  Push-button to toggle mode.\n");
 }
+
 static int getSpeedDivider(){
 	int speedDividerFactor = 1;
 	for(int i = 0; i < MAX_SPEED - speed; i++) {
@@ -191,4 +205,3 @@ static int getSpeedDivider(){
 	}
 	return speedDividerFactor;
 }
-

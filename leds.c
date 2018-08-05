@@ -9,8 +9,6 @@
 
 
 
-
-
 /*****************************************************************************
  **                INTERNAL MACRO DEFINITIONS
  *****************************************************************************/
@@ -39,13 +37,10 @@ void initializeLeds(void);
 void changeMode(uint8_t newMode);
 void toggleMode(void);
 void flashLights(void);
-void driveLedsWithSWFunction(void);
-void driveLedsWithSetAndClear(void);
-void driveLedsWithBitTwiddling(void);
 static void busyWait(unsigned int count);
 
 /*****************************************************************************
- **                INTERNAL FUNCTION DEFINITIONS
+ **                EXTERNAL FUNCTION DEFINITIONS
  *****************************************************************************/
 
 
@@ -58,6 +53,8 @@ void changeMode(uint8_t newMode)
 {
 	mode = newMode;
 }
+
+
 void toggleMode()
 {
 	if (mode == BOUNCE)
@@ -65,13 +62,13 @@ void toggleMode()
 	else
 		mode = BOUNCE;
 }
+
+
 void initializeLeds(void)
 {
 	/* Enabling functional clocks for GPIO1 instance. */
 	GPIO1ModuleClkConfig();
 
-	/* Selecting GPIO1[23] pin for use. */
-	//GPIO1Pin23PinMuxSetup();
 
 	/* Enabling the GPIO module. */
 	GPIOModuleEnable(LED_GPIO_BASE);
@@ -98,18 +95,22 @@ void initializeLeds(void)
 static void turnOnLED(int pin)
 {
 	HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = 1<<pin;
-			
+
 }
+
+
 static void turnOffLED(int pin)
 {
 	HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = 1<<pin;
 }
+
+
 void flashLights()
 {
-	
+
 	if (mode == BAR)
 	{
-		switch (counter % LED_STATES){  
+		switch (counter % LED_STATES){
 			case 0:
 				turnOffLED(LED1_PIN);
 				turnOnLED(LED0_PIN);
@@ -133,12 +134,12 @@ void flashLights()
 			case 5:
 				turnOffLED(LED2_PIN);
 				turnOnLED(LED1_PIN);
-				break;			
+				break;
 		}
 	}
 	else
 	{
-		switch (counter % LED_STATES){  
+		switch (counter % LED_STATES){
 			case 0:
 				turnOffLED(LED1_PIN);
 				turnOnLED(LED0_PIN);
@@ -157,81 +158,12 @@ void flashLights()
 				break;
 			case 5:
 				turnOffLED(LED2_PIN);
-				break;			
+				break;
 		}
 	}
 	counter++;
 }
-/*
 
- ** The main function. Application starts here.
- */
-
-void driveLedsWithSWFunction(void)
-{
-
-		// Flash each LED individually
-		for (int pin = LED0_PIN; pin <= LED3_PIN; pin++) {
-			/* Driving a logic HIGH on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_HIGH);
-
-			busyWait(DELAY_TIME);
-
-			/* Driving a logic LOW on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_LOW);
-
-			busyWait(DELAY_TIME);
-		}
-
-		// Hit the watchdog (must #include "watchdog.h"
-		// Each time you hit the WD, must pass it a different number
-		// than the last time you hit it.
-
-}
-
-void driveLedsWithSetAndClear(void)
-{
-//	int wdCounter = 0;
-
-		// Set all the LEDs:
-		HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = LED_MASK;
-		busyWait(DELAY_TIME);
-
-		// Clear all the LEDs:
-		HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = LED_MASK;
-		busyWait(DELAY_TIME);
-
-		// Hit the watchdog (must #include "watchdog.h"
-		// Each time you hit the WD, must pass it a different number
-		// than the last time you hit it.
-//		wdCounter++;
-//		WatchdogTimerTriggerSet(SOC_WDT_1_REGS, wdCounter);
-
-}
-
-void driveLedsWithBitTwiddling(void)
-{
-	int wdCounter = 0;
-	while (1) {
-		// Set all the LEDs:
-		HWREG(LED_GPIO_BASE + GPIO_DATAOUT) |= LED_MASK;
-		busyWait(DELAY_TIME);
-
-		// Clear all the LEDs:
-		HWREG(LED_GPIO_BASE + GPIO_DATAOUT) &= ~LED_MASK;
-		busyWait(DELAY_TIME);
-
-		// Hit the watchdog (must #include "watchdog.h"
-		// Each time you hit the WD, must pass it a different number
-		// than the last time you hit it.
-		wdCounter++;
-		WatchdogTimerTriggerSet(SOC_WDT_1_REGS, wdCounter);
-	}
-}
 
 /*
  ** Busy-wait function
@@ -241,5 +173,3 @@ static void busyWait(volatile unsigned int count)
 	while(count--)
 		;
 }
-
-
