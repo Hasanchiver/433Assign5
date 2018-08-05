@@ -11,7 +11,7 @@
  **                      WATCHDOG FUNCTIONS
  *******************************************************************************/
 #define WD_CLOCK          (32000L)
-#define WD_TIMEOUT_S      (30)
+#define WD_TIMEOUT_S      (5)
 #define WD_TIMEOUT_TICKS  (WD_TIMEOUT_S * WD_CLOCK)
 #define WD_RESET_VALUE    ((unsigned int)0xFFFFFFFF - WD_TIMEOUT_TICKS + 1)
 
