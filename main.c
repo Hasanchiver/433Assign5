@@ -124,10 +124,12 @@ int main()
 			if(currentMode = BAR_MODE){
 				currentMode = BOUNCE_MODE);
 				changeMode(BOUNCE_MODE);
+				ConsoleUtilsPrintf("\nChanging to Bounce mode\n");
 			}
 			else{
 				currentMode = BAR_MODE;
 				changeMode(BAR_MODE);
+				ConsoleUtilsPrintf("\nChanging to bar mode\n");
 			}
 				//ConsoleUtilsPrintf("> %d\n", isButtonPressed);
 
