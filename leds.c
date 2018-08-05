@@ -25,7 +25,7 @@
 #define MIN_SPEED 0
 #define BOUNCE 1
 #define BAR 2
-
+#define LED_STATES 7
 #define LED_MASK ((1<<LED0_PIN) | (1<<LED1_PIN) | (1<<LED2_PIN) | (1<<LED3_PIN))
 
 //#define DELAY_TIME 0x4000000		// Delay with MMU enabled
@@ -35,7 +35,7 @@
  **                INTERNAL FUNCTION PROTOTYPES
  *****************************************************************************/
 void initializeLeds(void);
-void changeSpeed(uint8_t newSpeed);
+
 void changeMode(uint8_t newMode);
 void toggleMode(void);
 void flashLights(void);
@@ -48,13 +48,12 @@ static void busyWait(unsigned int count);
  **                INTERNAL FUNCTION DEFINITIONS
  *****************************************************************************/
 
-static uint8_t speed = DEFAULT_SPEED;
-static uint8_t mode = BAR;
 
-void changeSpeed(uint8_t newSpeed)
-{
-	speed = newSpeed;
-}
+static uint8_t mode = BAR;
+static int counter = 0;
+
+
+
 void changeMode(uint8_t newMode)
 {
 	mode = newMode;
@@ -95,52 +94,73 @@ void initializeLeds(void)
 			GPIO_DIR_OUTPUT);
 }
 
+
+static void turnOnLED(int pin)
+{
+	HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = 1<<pin;
+			
+}
+static void turnOffLED(int pin)
+{
+	HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = 1<<pin;
+}
 void flashLights()
 {
+	
 	if (mode == BAR)
 	{
-		for (int pin = LED0_PIN; pin <= LED3_PIN; pin++) {
-			HWREG(LED_GPIO_BASE + GPIO_SETDATAOUT) = 1<<pin;
-			busyWait(DELAY_TIME);
-		}
-		for (int pin = LED3_PIN; pin >= LED0_PIN; pin--) {
-			HWREG(LED_GPIO_BASE + GPIO_CLEARDATAOUT) = 1<<pin;
-			busyWait(DELAY_TIME);
+		switch (counter % LED_STATES){  
+			case 0:
+				turnOffLED(LED1_PIN);
+				turnOnLED(LED0_PIN);
+				break;
+			case 1:
+				turnOffLED(LED0_PIN);
+				turnOnLED(LED1_PIN);
+				break;
+			case 2:
+				turnOffLED(LED1_PIN);
+				turnOnLED(LED2_PIN);
+				break;
+			case 3:
+				turnOffLED(LED2_PIN);
+				turnOnLED(LED3_PIN);
+				break;
+			case 4:
+				turnOffLED(LED3_PIN);
+				turnOnLED(LED2_PIN);
+				break;
+			case 5:
+				turnOffLED(LED2_PIN);
+				turnOnLED(LED1_PIN);
+				break;			
 		}
 	}
 	else
 	{
-		for (int pin = LED0_PIN; pin <= LED3_PIN; pin++) {
-			/* Driving a logic HIGH on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_HIGH);
-
-			busyWait(DELAY_TIME);
-
-			/* Driving a logic LOW on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_LOW);
-
-			busyWait(DELAY_TIME);
-		}
-		for (int pin = LED3_PIN; pin >= LED0_PIN; pin--) {
-			/* Driving a logic HIGH on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_HIGH);
-
-			busyWait(DELAY_TIME);
-
-			/* Driving a logic LOW on the GPIO pin. */
-			GPIOPinWrite(LED_GPIO_BASE,
-					pin,
-					GPIO_PIN_LOW);
-
-			busyWait(DELAY_TIME);
+		switch (counter % LED_STATES){  
+			case 0:
+				turnOffLED(LED1_PIN);
+				turnOnLED(LED0_PIN);
+				break;
+			case 1:
+				turnOnLED(LED1_PIN);
+				break;
+			case 2:
+				turnOnLED(LED2_PIN);
+				break;
+			case 3:
+				turnOnLED(LED3_PIN);
+				break;
+			case 4:
+				turnOffLED(LED3_PIN);
+				break;
+			case 5:
+				turnOffLED(LED2_PIN);
+				break;			
 		}
 	}
+	counter++;
 }
 /*
 
@@ -217,14 +237,9 @@ void driveLedsWithBitTwiddling(void)
  ** Busy-wait function
  */
 static void busyWait(volatile unsigned int count)
-{	
-	uint8_t i;
-	uint32_t speedDividerFactor = 1;
-	for(i = 0; i < MAX_SPEED - speed; i++) {
-		speedDividerFactor = speedDividerFactor * 2;
-	}
-	uint32_t newCount = count/speedDividerFactor;
-	while((newCount--));
+{
+	while(count--)
+		;
 }
 
 

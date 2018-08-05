@@ -19,18 +19,32 @@
 #define WATCHDOG_RESET      4
 #define COLD_RESET   	    0
 
+#define MAX_SPEED 9
+#define DEFAULT_SPEED 6
+#define MIN_SPEED 0
+#define BOUNCE 1
+#define BAR 2
+
+
 
 #define PRM_DEV 0x44E00F00
 #define PRM_RSTST_OFFSET 0x8
 
+static uint8_t speed = DEFAULT_SPEED;
+
 
 static _Bool stopWatchDog = false;
 
+static _Bool isButtonPressed = false;
+static _Bool lastButtonState = false;
+static int counter = 0;
 
 
 static volatile _Bool s_doThings = false;
-static void listCommands(void);
 
+
+static void listCommands(void);
+static int getSpeedDivider(void);
 static void printResetScources(void);
 static void listCommands(void);
 /******************************************************************************
@@ -40,9 +54,13 @@ static volatile uint8_t s_rxByte = 0;
 static void serialRxIsrCallback(uint8_t rxByte) {
 	s_rxByte = rxByte;
 }
-
+static void changeSpeed(uint8_t newSpeed)
+{
+	speed = newSpeed;
+}
 static void doBackgroundSerialWork(void)
 {
+	
 	if (s_rxByte != 0) {
 		if (s_rxByte == '?') {
 			listCommands();
@@ -53,11 +71,11 @@ static void doBackgroundSerialWork(void)
 		}
 		else if(s_rxByte == 'a' || s_rxByte == 'A') {
 			ConsoleUtilsPrintf("\nChanging to bounce mode\n");
-			changeMode(1);
+			changeMode(2);
 		}
 		else if(s_rxByte == 'b' || s_rxByte == 'B') {
 			ConsoleUtilsPrintf("\nChanging to bar mode\n");
-			changeMode(2);
+			changeMode(1);
 		}
 		else if(s_rxByte == 'x' || s_rxByte == 'X') {
 			ConsoleUtilsPrintf("\nNo longer hitting the watchdog.\n");
@@ -77,9 +95,20 @@ void notifyOnTimeIsr(void)
 }
 void doBackgroundWork(void)
 {
+
 	if (s_doThings) {
+
 		s_doThings = false;
-		flashLights();
+		isButtonPressed = readButtonWithBitTwiddling();
+		
+		if (counter % getSpeedDivider() == 0){
+			flashLights();
+		}	
+		if (lastButtonState != isButtonPressed) {
+				ConsoleUtilsPrintf("> %d\n", isButtonPressed);
+				lastButtonState = isButtonPressed;
+		}
+		counter++;
 	}
 }
 
@@ -103,24 +132,15 @@ int main()
 	listCommands();
 
 
-
-
-	_Bool lastButtonState = false;
 	while (1)
 	{
-
-
-		_Bool isButtonPressed = readButtonWithBitTwiddling();
-
-		doBackgroundSerialWork();
-		doBackgroundWork();
-
-
-		if (lastButtonState != isButtonPressed) {
-				ConsoleUtilsPrintf("> %d\n", isButtonPressed);
-				lastButtonState = isButtonPressed;
-			}
 		if(Timer_isIsrFlagSet()) {
+
+
+
+			doBackgroundSerialWork();
+			doBackgroundWork();
+
 			Timer_clearIsrFlag();
 			if (!stopWatchDog){
 				Watchdog_hit();
@@ -161,5 +181,11 @@ static void listCommands(){
 	ConsoleUtilsPrintf(" 'x':  Stop hitting the watchdog.\n");
 	ConsoleUtilsPrintf(" 'BTN':  Push-button to toggle mode.\n");
 }
-
+static int getSpeedDivider(){
+	int speedDividerFactor = 1;
+	for(int i = 0; i < MAX_SPEED - speed; i++) {
+		speedDividerFactor = speedDividerFactor * 2;
+	}
+	return speedDividerFactor;
+}
 

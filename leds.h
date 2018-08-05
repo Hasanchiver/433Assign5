@@ -5,7 +5,6 @@
 #define LEDS_H_
 
 void initializeLeds(void);
-void changeSpeed(uint8_t newSpeed);
 void changeMode(uint8_t newMode);
 void toggleMode(void);
 void flashLights(void);
