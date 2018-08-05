@@ -25,7 +25,7 @@
 
 
 static _Bool stopWatchDog = false;
-_Bool isButtonPressed = false;
+static _Bool isButtonPressed = false;
 
 
 static volatile _Bool s_doThings = false;
