@@ -30,6 +30,7 @@
 
 static _Bool stopWatchDog = false;
 static _Bool isButtonPressed = false;
+static int currentMode = 1;
 
 
 static volatile _Bool s_doThings = false;
@@ -57,10 +58,12 @@ static void doBackgroundSerialWork(void)
 		}
 		else if(s_rxByte == 'a' || s_rxByte == 'A') {
 			ConsoleUtilsPrintf("\nChanging to bounce mode\n");
+			currentMode = BAR_MODE;
 			changeMode(BAR_MODE);
 		}
 		else if(s_rxByte == 'b' || s_rxByte == 'B') {
 			ConsoleUtilsPrintf("\nChanging to bar mode\n");
+			currentMode = BOUNCE_MODE;
 			changeMode(BOUNCE_MODE);
 		}
 		else if(s_rxByte == 'x' || s_rxByte == 'X') {
@@ -117,8 +120,17 @@ int main()
 
 
 		if (lastButtonState != isButtonPressed) {
-				ConsoleUtilsPrintf("> %d\n", isButtonPressed);
-				lastButtonState = isButtonPressed;
+			lastButtonState = isButtonPressed;
+			if(currentMode = BAR_MODE){
+				currentMode = BOUNCE_MODE);
+				changeMode(BOUNCE_MODE);
+			}
+			else{
+				currentMode = BAR_MODE;
+				changeMode(BAR_MODE);
+			}
+				//ConsoleUtilsPrintf("> %d\n", isButtonPressed);
+
 			}
 		if(Timer_isIsrFlagSet()) {
 			Timer_clearIsrFlag();
