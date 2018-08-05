@@ -105,7 +105,10 @@ void doBackgroundWork(void)
 			flashLights();
 		}	
 		if (lastButtonState != isButtonPressed) {
-				ConsoleUtilsPrintf("> %d\n", isButtonPressed);
+				if (isButtonPressed == false)
+				{
+					toggleMode();
+				}
 				lastButtonState = isButtonPressed;
 		}
 		counter++;
