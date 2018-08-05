@@ -19,9 +19,13 @@
 #define WATCHDOG_RESET      4
 #define COLD_RESET   	    0
 
-
 #define PRM_DEV 0x44E00F00
 #define PRM_RSTST_OFFSET 0x8
+
+#define MIN_NUM_ASCII 48
+#define MAX_NUM_ASCII 57
+#define BAR_MODE 1
+#define BOUNCE_MODE 2
 
 
 static _Bool stopWatchDog = false;
@@ -47,17 +51,17 @@ static void doBackgroundSerialWork(void)
 		if (s_rxByte == '?') {
 			listCommands();
 		}
-		else if(s_rxByte >= 48 && s_rxByte <= 57) {
+		else if(s_rxByte >= MIN_NUM_ASCII && s_rxByte <= MAX_NUM_ASCII) {
 			ConsoleUtilsPrintf("\nSetting LED speed to %c\n", s_rxByte);
-			changeSpeed(s_rxByte - 48);
+			changeSpeed(s_rxByte - MIN_NUM_ASCII);
 		}
 		else if(s_rxByte == 'a' || s_rxByte == 'A') {
 			ConsoleUtilsPrintf("\nChanging to bounce mode\n");
-			changeMode(1);
+			changeMode(BAR_MODE);
 		}
 		else if(s_rxByte == 'b' || s_rxByte == 'B') {
 			ConsoleUtilsPrintf("\nChanging to bar mode\n");
-			changeMode(2);
+			changeMode(BOUNCE_MODE);
 		}
 		else if(s_rxByte == 'x' || s_rxByte == 'X') {
 			ConsoleUtilsPrintf("\nNo longer hitting the watchdog.\n");
