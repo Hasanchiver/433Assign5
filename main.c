@@ -1,7 +1,7 @@
 #include "soc_AM335x.h"
 #include "beaglebone.h"
 #include "consoleUtils.h"
-#include "hw_types.h" 
+#include "hw_types.h"
 #include <stdint.h>
 #include "gpio_v2.h"
 #include "dmtimer.h"
@@ -25,7 +25,7 @@
 
 
 static _Bool stopWatchDog = false;
-
+_Bool isButtonPressed = false;
 
 
 static volatile _Bool s_doThings = false;
@@ -79,6 +79,7 @@ void doBackgroundWork(void)
 {
 	if (s_doThings) {
 		s_doThings = false;
+		isButtonPressed = readButtonWithBitTwiddling();
 		flashLights();
 	}
 }
@@ -86,7 +87,7 @@ void doBackgroundWork(void)
 int main()
 {
 
-	
+
 	Serial_init(serialRxIsrCallback);
 	Timer_init();
 	Watchdog_init();
@@ -104,13 +105,8 @@ int main()
 
 
 
-
-	_Bool lastButtonState = false;
 	while (1)
 	{
-
-
-		_Bool isButtonPressed = readButtonWithBitTwiddling();
 
 		doBackgroundSerialWork();
 		doBackgroundWork();
@@ -137,7 +133,7 @@ static void printResetScources(void){
 	uint32_t resetSourceRegister = HWREG(PRM_DEV + PRM_RSTST_OFFSET);
 
 	ConsoleUtilsPrintf("Reset source (0x%x) = ", resetSourceRegister);
-	
+
 	if((resetSourceRegister & (1 << EXTERNAL_RESET)) != 0) {
 		ConsoleUtilsPrintf("External reset, \n");
 	}
@@ -161,5 +157,3 @@ static void listCommands(){
 	ConsoleUtilsPrintf(" 'x':  Stop hitting the watchdog.\n");
 	ConsoleUtilsPrintf(" 'BTN':  Push-button to toggle mode.\n");
 }
-
-
